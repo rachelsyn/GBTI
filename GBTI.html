@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GBTI | Gelato Brain Type Indicator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Quicksand', sans-serif; background-color: #FFFDF5; color: #4A2C2A; overflow-x: hidden; }
+        .melt-shadow { box-shadow: 0 8px 0px 0px #FADADD; }
+        .gelato-gradient { background: linear-gradient(180deg, #FFF4BD 0%, #FADADD 100%); }
+        .bounce-hover:hover { transform: translateY(-4px); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .scoop-progress { transition: width 0.4s cubic-bezier(0.65, 0, 0.35, 1); }
+        .step-content { display: none; animation: fadeIn 0.5s ease-out forwards; }
+        .step-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .option-btn { transition: all 0.2s ease; border: 2px solid transparent; }
+        .option-btn:active { transform: scale(0.95); }
+        
+        /* Fixed the background "undefined" issue with a proper class */
+        .result-bg-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8rem;
+            font-weight: 700;
+            opacity: 0.05;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="app-container" class="w-full max-w-md bg-white rounded-[3rem] p-8 shadow-2xl border-8 border-white relative overflow-hidden">
+        
+        <!-- Progress Bar Section -->
+        <div id="progress-container" class="hidden mb-8">
+            <div class="flex justify-between items-end mb-2">
+                <span id="q-count-label" class="text-xs font-bold uppercase tracking-widest opacity-40">Scoop 01/10</span>
+                <span class="text-xl">🍦</span>
+            </div>
+            <div class="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div id="progress-bar" class="scoop-progress h-full bg-pink-300 w-0"></div>
+            </div>
+        </div>
+
+        <!-- 1. Intro Screen -->
+        <div id="step-intro" class="step-content active text-center">
+            <div class="text-7xl mb-6 drop-shadow-sm">🍦</div>
+            <h1 class="text-5xl font-bold mb-2 tracking-tight">GBTI</h1>
+            <p class="text-lg opacity-80 mb-8 italic">“Which flavor matches your brain chemistry?”</p>
+            <button onclick="startQuiz()" class="w-full py-5 bg-pink-200 hover:bg-pink-300 rounded-2xl font-bold text-xl melt-shadow transition-all bounce-hover">
+                Find My Flavor
+            </button>
+            <p class="mt-8 text-xs opacity-30 font-medium uppercase tracking-tighter">10 Questions • 100% Creamy</p>
+        </div>
+
+        <!-- 2. Question Container -->
+        <div id="question-container" class="step-content">
+            <h2 id="q-text" class="text-2xl font-bold mb-8 leading-tight"></h2>
+            <div id="q-options" class="space-y-4"></div>
+        </div>
+
+        <!-- 3. Result Screen -->
+        <div id="result-step" class="step-content text-center relative">
+            <div id="result-card" class="gelato-gradient p-8 rounded-[2.5rem] shadow-inner mb-6 border-4 border-white relative overflow-hidden z-10">
+                <div id="bg-text-element" class="result-bg-text"></div>
+                <div id="result-icon" class="text-8xl mb-4 relative z-10">🍨</div>
+                <h3 class="text-xs font-bold uppercase tracking-widest opacity-60 mb-1 relative z-10">Your Vibe is...</h3>
+                <h2 id="result-flavor" class="text-4xl font-bold mb-4 tracking-tight relative z-10"></h2>
+                <div class="h-px bg-black opacity-10 w-full mb-6 relative z-10"></div>
+                <p id="result-desc" class="text-lg leading-relaxed font-medium text-brown-900 relative z-10"></p>
+            </div>
+            
+            <div class="space-y-3">
+                <button onclick="location.reload()" class="w-full py-4 bg-white border-2 border-pink-100 rounded-2xl font-bold bounce-hover text-pink-400">Try Another Flavor</button>
+                <button onclick="alert('Screenshot your result to share!')" class="w-full py-4 bg-[#4A2C2A] text-white rounded-2xl font-bold bounce-hover shadow-lg">Share to Stories</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentQ = 0;
+        let scores = { A: 0, B: 0, C: 0, D: 0 };
+
+        const questions = [
+            { q: "Your phone is at 1% and you’re out. What’s the move?", options: [{ t: "Acceptance. I am now off the grid.", s: "C" }, { t: "Panic. Sprinting to a cafe.", s: "B" }, { t: "I have a power bank ready.", s: "A" }, { t: "Ask a stranger. New friend!", s: "D" }] },
+            { q: "Pick your favorite 'brain rot' activity:", options: [{ t: "ASMR soap cutting.", s: "A" }, { t: "Reading niche Wikipedia drama.", s: "C" }, { t: "Scrolling chaotic TikToks.", s: "B" }, { t: "Watching K-pop fancams.", s: "D" }] },
+            { q: "It's Friday night. How are you recharging?", options: [{ t: "Bed by 9pm. Phone on DND.", s: "A" }, { t: "Dinner with a few besties.", s: "B" }, { t: "Solo walk with a podcast.", s: "C" }, { t: "Wherever the music is loud.", s: "D" }] },
+            { q: "Your dream apartment aesthetic is...", options: [{ t: "Minimalist, beige, and clean.", s: "A" }, { t: "Maximalist with neon and vinyl.", s: "B" }, { t: "Dark Academia library vibes.", s: "C" }, { t: "Plants in every corner.", s: "D" }] },
+            { q: "Your friend is crying. You immediately:", options: [{ t: "Ask if they want solutions or a vent.", s: "A" }, { t: "Say: 'Who do we need to fight?'", s: "B" }, { t: "Send a perfectly timed meme.", s: "C" }, { t: "Show up with their favorite snack.", s: "D" }] },
+            { q: "How do you handle a 20+ person group chat?", options: [{ t: "I'm sending all the stickers.", s: "D" }, { t: "Muted. I'll check in 3 days.", s: "C" }, { t: "I only reply to direct questions.", s: "A" }, { t: "I read everything, rarely type.", s: "B" }] },
+            { q: "Pick a dream vacation destination:", options: [{ t: "Cozy cabin in a misty forest.", s: "A" }, { t: "Futuristic city with neon lights.", s: "B" }, { t: "Historic library in London.", s: "C" }, { t: "Beach club with fruit drinks.", s: "D" }] },
+            { q: "What's your 'getting work done' energy?", options: [{ t: "Lo-fi beats and a timer.", s: "A" }, { t: "Chaos. 40 tabs and 3 drinks.", s: "B" }, { t: "Total, absolute silence.", s: "C" }, { t: "Working in a busy cafe.", s: "D" }] },
+            { q: "Choose your footwear personality:", options: [{ t: "Clean, classic white sneakers.", s: "A" }, { t: "Platform boots or chunky loafers.", s: "B" }, { t: "Vintage, thrifted leather shoes.", s: "C" }, { t: "Bright, colorful Crocs.", s: "D" }] },
+            { q: "Finally, how do you take your caffeine?", options: [{ t: "A very specific, aesthetic matcha.", s: "A" }, { t: "Whatever has the most caffeine.", s: "B" }, { t: "Black coffee. No frills.", s: "C" }, { t: "Iced latte with 3 pumps of syrup.", s: "D" }] }
+        ];
+
+        function startQuiz() {
+            document.getElementById('step-intro').classList.remove('active');
+            document.getElementById('progress-container').classList.remove('hidden');
+            document.getElementById('question-container').classList.add('active');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const data = questions[currentQ];
+            document.getElementById('q-count-label').innerText = `Scoop ${String(currentQ + 1).padStart(2, '0')}/10`;
+            document.getElementById('q-text').innerText = data.q;
+            const optionsDiv = document.getElementById('q-options');
+            optionsDiv.innerHTML = '';
+            data.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn w-full p-5 text-left bg-gray-50 hover:bg-pink-50 rounded-2xl hover:border-pink-200 text-lg font-medium shadow-sm";
+                btn.innerText = opt.t;
+                btn.onclick = () => handleAnswer(opt.s);
+                optionsDiv.appendChild(btn);
+            });
+            document.getElementById('progress-bar').style.width = ((currentQ + 1) / questions.length * 100) + '%';
+        }
+
+        function handleAnswer(scoreKey) {
+            scores[scoreKey]++;
+            currentQ++;
+            if (currentQ < questions.length) { renderQuestion(); } else { showResult(); }
+        }
+
+        function showResult() {
+            document.getElementById('question-container').classList.remove('active');
+            document.getElementById('progress-container').classList.add('hidden');
+            document.getElementById('result-step').classList.add('active');
+
+            const winner = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+            
+            const results = {
+                A: { f: "Vanilla Bean", i: "🍦", d: "The Elegant Minimalist. You're organized, reliable, and appreciate the finer, simpler things in life." },
+                B: { f: "Salted Caramel", i: "🍮", d: "The Sweet-but-Salty Strategist. You're a high-achiever who balances a chaotic schedule with treats." },
+                C: { f: "Dark Chocolate", i: "🍫", d: "The Midnight Philosopher. You're intense, deep, and mysterious. You probably have a very curated aesthetic." },
+                D: { f: "Mango Sorbet", i: "🥭", d: "The Unfiltered Main Character. You're 100% sunshine and chaos. You're everyone's favorite notification." }
+            };
+
+            const res = results[winner] || results['B'];
+            document.getElementById('result-flavor').innerText = res.f;
+            document.getElementById('result-icon').innerText = res.i;
+            document.getElementById('result-desc').innerText = res.d;
+            document.getElementById('bg-text-element').innerText = res.f;
+        }
+    </script>
+</body>
+</html>
